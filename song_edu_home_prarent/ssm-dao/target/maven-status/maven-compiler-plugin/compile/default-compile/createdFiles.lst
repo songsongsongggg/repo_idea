@@ -1,0 +1,9 @@
+com/song/dao/UserMapper.class
+com/song/dao/PromotionSpaceMapper.class
+com/song/dao/ResourceMapper.class
+com/song/dao/CourseMapper.class
+com/song/dao/RoleMapper.class
+com/song/dao/TestMapper.class
+com/song/dao/PromotionAdMapper.class
+com/song/dao/MenuMapper.class
+com/song/dao/CourseContentMapper.class

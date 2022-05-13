@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.song.dao.UserMapper">
+    <!--  分页获取用户数据&条件查询用户数据 public List<User> findAllUserByPage(UserVO userVO); -->
+    <select id="findAllUserByPage" parameterType="com.song.domain.UserVO" resultType="com.song.domain.User">
+        select id,
+        NAME,
+        portrait,
+        phone,
+        PASSWORD,
+        STATUS,
+        create_time
+        FROM user
+        <where>
+            <if test="true">
+                and is_del != 1
+            </if>
+            <if test="username != null">
+                and name = #{username}
+            </if>
+            <if test="startCreateTime != null and endCreateTime != null ">
+                and create_time between #{startCreateTime} and #{endCreateTime}
+            </if>
+        </where>
+    </select>
+
+    <!--  修改用户状态  -->
+    <update id="updateUserStatus" parameterType="com.song.domain.User">
+        update user
+        set status      = #{status},
+            update_time = #{update_time}
+        where id = #{id}
+    </update>
+
+    <!--  用户登录  -->
+    <select id="login" parameterType="com.song.domain.User" resultType="com.song.domain.User">
+        select *
+        from user
+        where phone = #{phone}
+    </select>
+
+    <!-- 注册用户 public void register(User user);  -->
+    <insert id="register" parameterType="com.song.domain.User">
+        insert into user
+        values (null, #{name}, #{portrait}, #{phone}, #{password}, #{reg_ip}, #{account_non_expired},
+                #{credentials_non_expired}, #{account_non_locked}, #{status}, #{is_del}, #{create_time}, #{update_time})
+    </insert>
+
+    <!--  删除用户  -->
+    <update id="deleteUser" parameterType="com.song.domain.User">
+        update user
+        set is_del = #{is_del}
+        where id = #{id}
+    </update>
+
+    <!--  根据userId 清空中间表的关联关系 public void deleteUserContextRole(Integer userId);-->
+    <delete id="deleteUserContextRole" parameterType="int">
+        delete
+        from user_role_relation
+        where user_id = #{userId}
+    </delete>
+
+    <!--  为用户分配角色信息 public void userContextRole(User_role_relation user_role_relation)  -->
+    <insert id="userContextRole" parameterType="com.song.domain.User_role_relation">
+        insert into user_role_relation
+        values (null, #{userId}, #{roleId}, #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy})
+    </insert>
+
+    <!-- 1、根据ID查询用户当前角色 public List<Role> findUserRelationRoleById(int id);  -->
+    <select id="findUserRelationRoleById" parameterType="int" resultType="com.song.domain.Role">
+        select *
+        from roles
+                 left join user_role_relation on roles.id = user_role_relation.role_id
+        where user_role_relation.user_id = #{id}
+    </select>
+
+    <!--  2、根据角色id,查询角色拥有的顶级菜单信息  public List<Menu> findParentMenuByRoleId(List<Integer> ids); -->
+    <select id="findParentMenuByRoleId" parameterType="java.util.List" resultType="com.song.domain.Menu">
+        SELECT
+        DISTINCT m.*
+        FROM roles r INNER JOIN role_menu_relation rm ON r.`id` = rm.role_id
+        INNER JOIN menu m ON rm.menu_id = m.id
+        WHERE m.parent_id = -1 AND r.id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        GROUP BY m.id
+    </select>
+
+    <!-- 3、根据PID 查找子菜单 -->
+    <select id="findSubMenuByPid" resultType="com.song.domain.Menu">
+        select *
+        from menu
+        where parent_id = #{pid}
+    </select>
+
+    <!-- 4、获取用户拥有的资源权限 -->
+    <select id="findResourceByRoleId" parameterType="java.util.List" resultType="com.song.domain.Resource">
+        SELECT
+        DISTINCT rc.*
+        FROM roles r INNER JOIN role_resource_relation rrr ON r.`id` = rrr.`role_id`
+                     INNER JOIN resource rc ON rrr.`resource_id` = rc.`id` WHERE r.id IN
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        GROUP BY rc.id;
+    </select>
+</mapper>

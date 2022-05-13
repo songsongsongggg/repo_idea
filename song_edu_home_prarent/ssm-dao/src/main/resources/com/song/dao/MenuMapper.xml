@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.song.dao.MenuMapper">
+    <!-- 根据pid 查询所有子分类集合 -->
+    <resultMap id="MenuResult" type="com.song.domain.Menu">
+        <id column="id" property="id"></id>
+        <result column="href" property="href"></result>
+        <result column="icon" property="icon"></result>
+        <result column="name" property="name"></result>
+        <result column="parent_id" property="parentId"></result>
+        <result column="description" property="description"></result>
+        <result column="order_num" property="orderNum"></result>
+        <result column="shown" property="shown"></result>
+        <result column="created_time" property="createdTime"></result>
+        <result column="updated_time" property="updatedTime"></result>
+        <result column="created_by" property="createdBy"></result>
+        <result column="updated_by" property="updatedBy"></result>
+        <collection property="subMenuList" ofType="com.song.domain.Menu"
+                    select="findSubMenuListByPid" column="id">
+
+        </collection>
+    </resultMap>
+
+    <!-- 一对多: 查找子孙菜单 -->
+    <select id="findSubMenuListByPid" parameterType="int" resultMap="MenuResult">
+        select *
+        FROM menu
+        where parent_id = #{pid}
+    </select>
+
+    <!--  查询菜单列表  -->
+    <select id="findAllMenu" resultType="com.song.domain.Menu">
+        select *
+        from menu
+    </select>
+
+    <!--  根据菜单ID 查询菜单信息  -->
+    <select id="findMenuById" parameterType="int" resultType="com.song.domain.Menu">
+        select *
+        from menu
+        where id = #{id}
+    </select>
+
+    <!--  添加菜单  -->
+    <insert id="saveMenu" parameterType="com.song.domain.Menu">
+        insert into menu values(null, #{parentId}, #{href}, #{icon}, #{name}, #{description}, #{orderNum}, #{shown},
+                           #{level}, #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy})
+    </insert>
+
+    <!--  修改菜单  -->
+    <update id="updateMenu" parameterType="com.song.domain.Menu">
+        update menu
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="parentId != null and parentId != ''">
+                parent_id = #{parentId},
+            </if>
+            <if test="href != null and href != ''">
+                href = #{href},
+            </if>
+            <if test="icon != null and icon != ''">
+                icon = #{icon},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="description != null and description != ''">
+                description = #{description},
+            </if>
+            <if test="orderNum != null and orderNum != ''">
+                order_num = #{orderNum},
+            </if>
+            <if test="shown != null and shown != ''">
+                shown = #{shown},
+            </if>
+            <if test="level != null and level != ''">
+                level = #{level},
+            </if>
+            <if test="createdTime != null">
+                created_time = #{createdTime},
+            </if>
+            <if test="updatedTime != null">
+                updated_time = #{updatedTime},
+            </if>
+            <if test="createdBy != null and createdBy != ''">
+                created_by = #{createdBy},
+            </if>
+            <if test="updatedBy != null and updatedBy != ''">
+                updated_by = #{updatedBy},
+            </if>
+        </trim>
+        <where>
+            <if test="id != null and id != '' ">
+                id = #{id}
+            </if>
+        </where>
+    </update>
+
+    <!--  删除菜单  -->
+    <delete id="deleteMenu" parameterType="int">
+        delete from menu where id = #{id}
+    </delete>
+</mapper>

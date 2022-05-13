@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.song.dao.RoleMapper">
+    <!--查询角色列表(条件)-->
+    <select id="findAllRole" parameterType="com.song.domain.Role" resultType="com.song.domain.Role">
+        select * FROM roles
+        <where>
+            <if test="name != null and name != ''">
+                and name = #{name}
+            </if>
+        </where>
+    </select>
+
+    <!-- 添加角色  -->
+    <insert id="saveRole" parameterType="com.song.domain.Role">
+        insert into roles
+        values (null, #{code}, #{name}, #{description}, #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy})
+    </insert>
+
+    <!--  根据id 查询回显角色信息  -->
+    <select id="findRoleById" parameterType="int" resultType="com.song.domain.Role">
+        select *
+        from roles
+        where id = #{id}
+    </select>
+
+    <!--  修改角色  -->
+    <update id="updateRole" parameterType="com.song.domain.Role">
+        update roles
+        set code         = #{code},
+            name         = #{name},
+            description  = #{description},
+            updated_time = #{updatedTime},
+            updated_by   = #{updatedBy}
+        where id = #{id}
+    </update>
+
+    <!--  根据角色id查询关联 菜单id  -->
+    <select id="findMenuByRoleId" parameterType="int" resultType="int">
+        SELECT m.`id`
+        FROM roles r
+                 LEFT JOIN role_menu_relation rm ON r.id = rm.`role_id`
+                 LEFT JOIN menu m ON rm.`menu_id` = m.`id`
+        WHERE r.id = #{id}
+    </select>
+
+    <!--  根据roleId 清空中间表的关联关系  -->
+    <delete id="deleteRoleContextMenu" parameterType="int">
+        delete
+        FROM role_menu_relation
+        where role_id = #{roleId}
+    </delete>
+
+    <!--  为角色分配 菜单信息  -->
+    <insert id="roleContextMenu" parameterType="com.song.domain.Role_menu_relation">
+        insert into role_menu_relation
+        values (null, #{menuId}, #{roleId}, #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy})
+    </insert>
+    
+    <!--  删除角色  -->
+    <delete id="deleteRole" parameterType="int">
+        delete from roles where id = #{id}
+    </delete>
+
+    <!--  查询当前角色拥有的资源分类信息  -->
+    <select id="findResourceCategoryByRoleId" parameterType="int" resultType="com.song.domain.ResourceCategory">
+        SELECT DISTINCT rc.*
+        FROM roles r
+                 LEFT JOIN role_resource_relation rrr ON r.id = rrr.`role_id`
+                 LEFT JOIN resource re ON rrr.`resource_id` = re.`id`
+                 LEFT JOIN resource_category rc ON rc.id = re.category_id
+        WHERE r.id = #{id}
+        order by rc.id
+    </select>
+
+    <!--  查询当前角色拥有的资源信息  -->
+    <select id="findResourceByRoleId" parameterType="int" resultType="com.song.domain.Resource">
+        SELECT re.*
+        FROM roles r
+                 LEFT JOIN role_resource_relation rrr ON r.id = rrr.`role_id`
+                 LEFT JOIN resource re ON rrr.`resource_id` = re.`id`
+        WHERE r.id = #{id}
+    </select>
+
+<!--    &lt;!&ndash;  根据角色ID查询关联 资源ID  &ndash;&gt;-->
+<!--    <select id="findResourceByRoleId" parameterType="int" resultType="int">-->
+<!--        SELECT re.`id`-->
+<!--        FROM roles r-->
+<!--                 LEFT JOIN role_resource_relation rrr ON r.id = rrr.`role_id`-->
+<!--                 LEFT JOIN resource re ON rrr.`resource_id` = re.`id`-->
+<!--        WHERE r.id = #{id}-->
+<!--    </select>-->
+
+    <!--  根据resourcesId 清空中间表的关联关系  -->
+    <delete id="deleteRoleContextResource" parameterType="int">
+        delete
+        FROM role_resource_relation
+        where resource_id = #{resourceId}
+    </delete>
+
+    <!--  为角色分配 资源信息  -->
+    <insert id="roleContextResource" parameterType="com.song.domain.Role_menu_relation">
+        insert into role_resource_relation
+        values (null, #{resourceId}, #{roleId}, #{createdTime}, #{updatedTime}, #{createdBy}, #{updatedBy})
+    </insert>
+
+
+</mapper>
+
+
